@@ -4,6 +4,7 @@ import traceback
 import logging
 import settings as s
 from service import CrawlService, MysqlService
+from concurrent.futures import ThreadPoolExecutor
 
 crawl_service = CrawlService()
 
@@ -100,7 +101,7 @@ def crawl_store_job():
 
         for r_c in region_tuple:
             region_id, region, region_src = r_c[0], r_c[1], r_c[2]
-            if MysqlService.update_status_code(region_id, table=s.REGION_TABLE) == s.FUNC_CODE_ERROR:  # 更新状态码
+            if MysqlService.update_status_code(f"('{region_id}')", table=s.REGION_TABLE) == s.FUNC_CODE_ERROR:  # 更新状态码
                 pass
 
             try:
