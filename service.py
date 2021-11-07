@@ -235,8 +235,7 @@ class MysqlService(object):
                             {s.REGION_TABLE} (`id`,`city_id`,`region`,`region_src`) 
                             values 
                             ('{ju.hash_key(city_id + region)}','{city_id}','{region}','{src}')"""
-            MysqlUtil.modity(insert_sql)
-            return s.FUNC_CODE_ERROR
+            return MysqlUtil.modity(insert_sql)
 
     @staticmethod
     def insert_job_list(region_id, job_list):
