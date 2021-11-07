@@ -1,3 +1,4 @@
+import requests
 import pymysql
 import logging
 import settings as s
@@ -6,6 +7,19 @@ import datetime
 
 connection = pymysql.connect(**s.MYSQL)
 cursor = connection.cursor()
+
+
+def wechat_remind(title, content):
+    """微信提醒"""
+    url = "http://pushplus.hxtrip.com/send"
+    params = {
+        "token": "e71cb823d3564e939a79a06ffc6e9114",
+        "title": title,
+        "content": content,
+    }
+
+    response = requests.get(url, params=params)
+    return response.text
 
 
 def format_date(date_str):
@@ -59,6 +73,7 @@ class MysqlUtil(object):
 
 
 if __name__ == '__main__':
-    util = MysqlUtil()
-    # print(util.query("select * from citys"))
-    print(format_date("4小时前"))
+    # util = MysqlUtil()
+    # # print(util.query("select * from citys"))
+    # print(format_date("4小时前"))
+    wechat_remind("title", "兼职猫程序测试")
