@@ -1,11 +1,11 @@
 import requests
 import pymysql
 import logging
-import settings as s
+import config as c
 from hashlib import sha1
 import datetime
 
-connection = pymysql.connect(**s.MYSQL)
+connection = pymysql.connect(**c.MYSQL)
 cursor = connection.cursor()
 
 
@@ -59,7 +59,7 @@ class MysqlUtil(object):
         except Exception as e:
             logging.error(f"插入数据/修改数据报错，e:{e},sql:{sql}")
             connection.rollback()
-            return s.FUNC_CODE_ERROR
+            return c.FUNC_CODE_ERROR
 
     @staticmethod
     def query(sql):

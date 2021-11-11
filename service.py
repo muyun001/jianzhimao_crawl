@@ -4,7 +4,7 @@ import random
 import logging
 import requests
 import traceback
-import settings as s
+import config as c
 from lxml import etree
 from functools import reduce
 import jianzhimao_utils as ju
@@ -171,14 +171,14 @@ class MysqlService(object):
         兼职表：id,地区id，招聘链接，招聘标题，地区，浏览人数，发布时间，职业类型，招聘人数，上班地点，时间要求，工作种类，每周至少，上班时段，结算方式，
                 基本工资，工作详情，公司名，公司介绍，公司地址，城市id，状态码（-1抓取失败，0未抓取，1抓取中，2抓取成功），抓取时间
         """
-        ct_sql = f"""create table if not exists `{s.CITY_TABLE}`(
+        ct_sql = f"""create table if not exists `{c.CITY_TABLE}`(
                                 `id` varchar(68) not null comment "城市id",
                                 `city` varchar(32) not null comment "城市名",
                                 `city_href` varchar(64) not null comment "城市链接",
                                 `status_code` int(1) not null default 0 comment "状态码：0未抓取，1正在抓取，2抓取成功，-1抓取失败",
                                 `crawl_time` datetime not null default now() comment "抓取时间",
                                 primary key (`id`))"""
-        rg_sql = f"""create table if not exists `{s.REGION_TABLE}`(
+        rg_sql = f"""create table if not exists `{c.REGION_TABLE}`(
                                 `id` varchar(68) not null comment "区域id",
                                 `city_id` varchar(64) not null comment "城市id",
                                 `region` varchar(64) not null comment "地区",
@@ -186,7 +186,7 @@ class MysqlService(object):
                                 `status_code` int(1) not null default 0 comment "状态码：0未抓取，1正在抓取，2抓取成功，-1抓取失败",
                                 `crawl_time` datetime not null default now() comment "抓取时间",
                                 primary key (`id`))"""
-        jb_sql = f"""create table if not exists `{s.JOB_TABLE}`(
+        jb_sql = f"""create table if not exists `{c.JOB_TABLE}`(
                             `id` varchar(68) not null comment "兼职id",
                             `region_id` varchar(64) comment "地区id",
     --                         `city` varchar(16) comment "城市",
@@ -220,7 +220,7 @@ class MysqlService(object):
         """插入城市数据"""
         for city, href in ch_dict.items():
             insert_sql = f"""insert ignore into 
-                            {s.CITY_TABLE}(`id`, `city`,`city_href`) 
+                            {c.CITY_TABLE}(`id`, `city`,`city_href`) 
                             values 
                             ("{ju.hash_key(city + href)}","{city}","{href}")
                             """
@@ -232,7 +232,7 @@ class MysqlService(object):
         """插入区域数据"""
         for region, src in rh_dict.items():
             insert_sql = f"""insert ignore into 
-                            {s.REGION_TABLE} (`id`,`city_id`,`region`,`region_src`) 
+                            {c.REGION_TABLE} (`id`,`city_id`,`region`,`region_src`) 
                             values 
                             ('{ju.hash_key(city_id + region)}','{city_id}','{region}','{src}')"""
             return MysqlUtil.modity(insert_sql)
@@ -251,7 +251,7 @@ class MysqlService(object):
             data_list = list(map(lambda x, y: f"('{x}'" + "," + y, job_id_list, t_data_list))
             insert_data = ",".join(data_list)
             insert_sql = f"""insert ignore into 
-                            {s.JOB_TABLE}(`id`,`region_id`,`url`,`title`,`visited`,`release_date`)
+                            {c.JOB_TABLE}(`id`,`region_id`,`url`,`title`,`visited`,`release_date`)
                             values 
                             {insert_data}
                             """
@@ -262,33 +262,33 @@ class MysqlService(object):
     @staticmethod
     def update_job_detail(job_id, job_detail_dict):
         """更新详情数据"""
-        update_sql = f"""update {s.JOB_TABLE}
+        update_sql = f"""update {c.JOB_TABLE}
                                     set job_type="{job_detail_dict["job_type"]}", recruit_num={job_detail_dict["recruit_num"]},
                                         work_at="{job_detail_dict["work_at"]}",time_require="{job_detail_dict["time_require"]}",
                                         work_type="{job_detail_dict["work_type"]}",at_least_weekly="{job_detail_dict["at_least_weekly"]}",
                                         how_pay="{job_detail_dict["how_pay"]}",job_price="{job_detail_dict["job_price"]}",
                                         job_detail="{job_detail_dict["job_detail"]}",com_name="{job_detail_dict["com_name"]}",
                                         com_info="{job_detail_dict["com_info"]}",com_addr="{job_detail_dict["com_addr"]}",
-                                        work_time="{job_detail_dict["work_time"]}",status_code={s.STATUS_CRAWL_SUCCEED}, 
+                                        work_time="{job_detail_dict["work_time"]}",status_code={c.STATUS_CRAWL_SUCCEED}, 
                                         crawl_time=now()
                                     where id = "{job_id}"
                                 """
         MysqlUtil.modity(update_sql)
 
     @staticmethod
-    def update_status_code(id_tuple, status_code=s.STATUS_CRAWLING, table=s.JOB_TABLE):
+    def update_status_code(id_tuple, status_code=c.STATUS_CRAWLING, table=c.JOB_TABLE):
         """更新表中的状态码"""
         update_sql = f"update {table} set status_code={status_code} where id in {id_tuple}"
         return MysqlUtil.modity(update_sql)
 
     @staticmethod
-    def service_query(table=s.JOB_TABLE):
-        query_city_sql = f"select id, city, city_href from {s.CITY_TABLE} where status_code = {s.STATUS_NOT_CRAWL} limit {s.QUERY_NUMBER_CITY}"
-        query_region_sql = f"select id, region, region_src from {s.REGION_TABLE} where status_code = {s.STATUS_NOT_CRAWL} limit {s.QUERY_NUMBER_REGION}"
-        query_job_sql = f"select id, url from {s.JOB_TABLE} where status_code = {s.STATUS_NOT_CRAWL} limit {s.QUERY_NUMBER_JOB}"
-        if table == s.CITY_TABLE:
+    def service_query(table=c.JOB_TABLE):
+        query_city_sql = f"select id, city, city_href from {c.CITY_TABLE} where status_code = {c.STATUS_NOT_CRAWL} limit {c.QUERY_NUMBER_CITY}"
+        query_region_sql = f"select id, region, region_src from {c.REGION_TABLE} where status_code = {c.STATUS_NOT_CRAWL} limit {c.QUERY_NUMBER_REGION}"
+        query_job_sql = f"select id, url from {c.JOB_TABLE} where status_code = {c.STATUS_NOT_CRAWL} limit {c.QUERY_NUMBER_JOB}"
+        if table == c.CITY_TABLE:
             sql = query_city_sql
-        elif table == s.REGION_TABLE:
+        elif table == c.REGION_TABLE:
             sql = query_region_sql
         else:
             sql = query_job_sql
@@ -303,8 +303,8 @@ class CrawlService(object):
         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36"
     }
 
-    @retry(stop_max_attempt_number=s.STOP_MAX_ATTEMPT_NUMBER, wait_random_min=s.WAIT_RANDOM_MIN,
-           wait_random_max=s.WAIT_RANDOM_MAX)
+    @retry(stop_max_attempt_number=c.STOP_MAX_ATTEMPT_NUMBER, wait_random_min=c.WAIT_RANDOM_MIN,
+           wait_random_max=c.WAIT_RANDOM_MAX)
     def crawl_citys(self):
         """获取所有的城市名和链接地址"""
         url = "https://www.jianzhimao.com/ctrlcity/changeCity.html"
@@ -314,18 +314,18 @@ class CrawlService(object):
             exit()
         return ParseService.city_parse(response.text)
 
-    @retry(stop_max_attempt_number=s.STOP_MAX_ATTEMPT_NUMBER, wait_random_min=s.WAIT_RANDOM_MIN,
-           wait_random_max=s.WAIT_RANDOM_MAX)
+    @retry(stop_max_attempt_number=c.STOP_MAX_ATTEMPT_NUMBER, wait_random_min=c.WAIT_RANDOM_MIN,
+           wait_random_max=c.WAIT_RANDOM_MAX)
     def crawl_regions(self, href):
         """获取所有区域，报错则返回-1"""
         response = requests.get(href, headers=self.HEADER)
-        if response.status_code != s.RESPONSE_STATUS_CODE_NORMAL:
+        if response.status_code != c.RESPONSE_STATUS_CODE_NORMAL:
             logging.info(f"抓取以下城市的区域信息失败！ 状态码:{response.status_code}")
-            return s.FUNC_CODE_ERROR
+            return c.FUNC_CODE_ERROR
         return ParseService.region_parse(href.strip("/"), response.text)
 
-    @retry(stop_max_attempt_number=s.STOP_MAX_ATTEMPT_NUMBER, wait_random_min=s.WAIT_RANDOM_MIN,
-           wait_random_max=s.WAIT_RANDOM_MAX)
+    @retry(stop_max_attempt_number=c.STOP_MAX_ATTEMPT_NUMBER, wait_random_min=c.WAIT_RANDOM_MIN,
+           wait_random_max=c.WAIT_RANDOM_MAX)
     def crawl_job_list(self, src):
         """获取工作列表数据"""
         region_job_list = list()
@@ -333,9 +333,9 @@ class CrawlService(object):
             page_src = src + f"index{i}.html"  # 拼接页码
             logging.info(f"正在抓取兼职列表信息，页面链接：{page_src}")
             response = requests.get(page_src, headers=self.HEADER)
-            if response.status_code != s.RESPONSE_STATUS_CODE_NORMAL:
+            if response.status_code != c.RESPONSE_STATUS_CODE_NORMAL:
                 logging.error(f"抓取'{src}'区域信息失败！ 状态码:{response.status_code}")
-                return s.FUNC_CODE_ERROR
+                return c.FUNC_CODE_ERROR
             if "抱歉，没找到你要的信息" in response.text:  # 没有数据，退出循环
                 break
             job_list = ParseService.job_list_parse(src, response.text)
@@ -346,15 +346,15 @@ class CrawlService(object):
             time.sleep(random.random() * 5)
         return region_job_list
 
-    @retry(stop_max_attempt_number=s.STOP_MAX_ATTEMPT_NUMBER, wait_random_min=s.WAIT_RANDOM_MIN,
-           wait_random_max=s.WAIT_RANDOM_MAX)
+    @retry(stop_max_attempt_number=c.STOP_MAX_ATTEMPT_NUMBER, wait_random_min=c.WAIT_RANDOM_MIN,
+           wait_random_max=c.WAIT_RANDOM_MAX)
     def crawl_job_detail(self, url):
         """获取详情页数据"""
         logging.info(f"开始抓取页面并解析.url: {url}")
         response = requests.get(url, headers=self.HEADER)
-        if response.status_code != s.RESPONSE_STATUS_CODE_NORMAL:
+        if response.status_code != c.RESPONSE_STATUS_CODE_NORMAL:
             logging.warning(f"抓取'{url}'失败！ 状态码:{response.status_code}")
-            return s.FUNC_CODE_ERROR
+            return c.FUNC_CODE_ERROR
 
         return ParseService.job_detail_parse(response.text)  # 解析详情页数据
 
