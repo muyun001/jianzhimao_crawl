@@ -4,7 +4,6 @@ import random
 import logging
 import requests
 import traceback
-import config as c
 from lxml import etree
 from functools import reduce
 import jianzhimao_utils as ju
