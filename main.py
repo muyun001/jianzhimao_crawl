@@ -11,7 +11,7 @@ crawl_service = CrawlService()
 
 def create_table():
     """创建表"""
-    if MysqlService.create_table() == -1:
+    if MysqlService.create_table() == s.FUNC_CODE_ERROR:
         exit()
 
 
@@ -30,7 +30,7 @@ def crawl_store_city():
         exit()
 
     logging.info("开始将所有城市名和链接存入数据库。。。")
-    if MysqlService.insert_city(cu_dict) == -1:
+    if MysqlService.insert_city(cu_dict) == s.FUNC_CODE_ERROR:
         logging.error("插入城市数据时出错，程序即将退出！")
         exit()
 
@@ -154,7 +154,7 @@ def crawl_store_jd():
                 MysqlService.update_status_code(f"('{job_id}')", c.STATUS_CRAWL_FAILED, c.JOB_TABLE)
                 continue
             MysqlService.update_job_detail(job_id, job_detail_dict)  # 把兼职详情页信息更新到数据库,状态码也一并修改
-            time.sleep(random.random() * 5)
+            time.sleep(random.random())
 
 
 def run():
@@ -167,9 +167,3 @@ def run():
 
 if __name__ == '__main__':
     run()
-    # todo 添加多线程
-    # todo 添加微信提醒
-    # todo
-    # crawl_store_jd()
-    # a = (1,2,3)
-    # print(a)
