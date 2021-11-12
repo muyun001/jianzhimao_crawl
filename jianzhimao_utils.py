@@ -70,10 +70,3 @@ class MysqlUtil(object):
         except Exception as e:
             logging.error(f"查询数据报错，e:{e},sql:{sql}")
             connection.rollback()
-
-
-if __name__ == '__main__':
-    # util = MysqlUtil()
-    # # print(util.query("select * from citys"))
-    # print(format_date("4小时前"))
-    wechat_remind("title", "兼职猫程序测试")

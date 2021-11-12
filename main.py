@@ -67,7 +67,7 @@ def crawl_store_region():
             if not rh_dict:
                 logging.warning(f"没有解析到数据，region_src:{region_src}")
                 if MysqlService.update_status_code(f"('{city_id}')", config.STATUS_CRAWL_FAILED,
-                                                   config.CITY_TABLE) == c.FUNC_CODE_ERROR:
+                                                   config.CITY_TABLE) == config.FUNC_CODE_ERROR:
                     logging.error(f"更新城市数据报错！{c}")
                 continue
 
