@@ -238,54 +238,35 @@ class MysqlService(object):
             return MysqlUtil.modity(insert_sql)
 
     @staticmethod
-    def insert_job_list(region_id, job_list):
-        """插入工作列表数据"""
-        job_id_list, t_data_list = list(), list()
-        insert_sql = ""
-        try:
-            for job in job_list:
-                job_id_list.append(ju.hash_key(region_id + job["url"]))  # 根据地区id和url生成job表的id
-                t_data_list.append(
-                    f"""'{region_id}','{job["url"]}','{job["title"]}',{job["visited"]},'{job["release_time"]}')""")
-
-            data_list = list(map(lambda x, y: f"('{x}'" + "," + y, job_id_list, t_data_list))
-            insert_data = ",".join(data_list)
-            insert_sql = f"""insert ignore into 
-                            {config.JOB_TABLE}(`id`,`region_id`,`url`,`title`,`visited`,`release_date`)
-                            values 
-                            {insert_data}
-                            """
-        except:
-            logging.error(f"插入列表数据失败,region_id:{region_id},sql:{insert_sql}")
+    def insert_job(region_id,job):
+        """将兼职数据写入数据库"""
+        id = ju.hash_key(job["url"] + job["title"])
+        # 拼接需要插入的values数据
+        values = """("%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s",%d)""" % \
+                 (id, region_id, job["url"], job["title"], job["visited"], job["release_time"], job["job_type"],
+                  job["recruit_num"], job["work_at"], job["time_require"], job["work_type"], job["at_least_weekly"],
+                  job["work_time"], job["how_pay"], job["job_price"], job["job_detail"], job["com_name"],
+                  job["com_info"],job["com_addr"], config.STATUS_CRAWL_SUCCEED)
+        insert_sql = f"""
+            insert ignore into
+            {config.JOB_TABLE}
+            (`id`,`region_id`,`url`,`title`,`visited`,`release_date`,`job_type`,`recruit_num`,`work_at`,
+            `time_require`,`work_type`,`at_least_weekly`,`work_time`,`how_pay`,
+            `job_price`,`job_detail`,`com_name`,`com_info`,`com_addr`,`status_code`)
+            values {values}
+        """
         return MysqlUtil.modity(insert_sql)
 
     @staticmethod
-    def update_job_detail(job_id, job_detail_dict):
-        """更新详情数据"""
-        update_sql = f"""update {config.JOB_TABLE}
-                                    set job_type="{job_detail_dict["job_type"]}", recruit_num={job_detail_dict["recruit_num"]},
-                                        work_at="{job_detail_dict["work_at"]}",time_require="{job_detail_dict["time_require"]}",
-                                        work_type="{job_detail_dict["work_type"]}",at_least_weekly="{job_detail_dict["at_least_weekly"]}",
-                                        how_pay="{job_detail_dict["how_pay"]}",job_price="{job_detail_dict["job_price"]}",
-                                        job_detail="{job_detail_dict["job_detail"]}",com_name="{job_detail_dict["com_name"]}",
-                                        com_info="{job_detail_dict["com_info"]}",com_addr="{job_detail_dict["com_addr"]}",
-                                        work_time="{job_detail_dict["work_time"]}",status_code={c.STATUS_CRAWL_SUCCEED}, 
-                                        crawl_time=now()
-                                    where id = "{job_id}"
-                                """
-        MysqlUtil.modity(update_sql)
-
-    @staticmethod
-    def update_status_code(id_tuple, status_code=c.STATUS_CRAWLING, table=config.JOB_TABLE):
+    def update_status_code(id_tuple, status_code=config.STATUS_CRAWLING, table=config.JOB_TABLE):
         """更新表中的状态码"""
         update_sql = f"update {table} set status_code={status_code} where id in {id_tuple}"
         return MysqlUtil.modity(update_sql)
 
     @staticmethod
-    def service_query(table=config.JOB_TABLE):
+    def service_query(table=config.REGION_TABLE):
         query_city_sql = f"select id, city, city_href from {config.CITY_TABLE} where status_code = {config.STATUS_NOT_CRAWL} limit {config.QUERY_NUMBER_CITY}"
         query_region_sql = f"select id, region, region_src from {config.REGION_TABLE} where status_code = {config.STATUS_NOT_CRAWL} limit {config.QUERY_NUMBER_REGION}"
-        query_job_sql = f"select id, url from {config.JOB_TABLE} where status_code = {config.STATUS_NOT_CRAWL} limit {config.QUERY_NUMBER_JOB}"
         if table == config.CITY_TABLE:
             sql = query_city_sql
         elif table == config.REGION_TABLE:
@@ -343,7 +324,7 @@ class CrawlService(object):
                 logging.warning(f"目前页面解析出兼职列表为空,url:{page_src}")
                 continue
             region_job_list.extend(job_list)
-            time.sleep(random.random() * 5)
+            time.sleep(random.random() * 3)
         return region_job_list
 
     @retry(stop_max_attempt_number=config.STOP_MAX_ATTEMPT_NUMBER, wait_random_min=config.WAIT_RANDOM_MIN,
