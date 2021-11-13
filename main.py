@@ -48,7 +48,7 @@ def crawl_store_region():
             city_id, region, region_src = c[0], c[1], c[2]
 
             logging.info(f"开始更新{region}地区的状态码为'抓取中'")
-            if MysqlService.update_status_code(f"('{city_id}')", table=c.CITY_TABLE) == config.FUNC_CODE_ERROR:
+            if MysqlService.update_status_code(f"('{city_id}')", table=config.CITY_TABLE) == config.FUNC_CODE_ERROR:
                 pass  # todo
 
             try:
@@ -61,7 +61,7 @@ def crawl_store_region():
                     logging.error(f"更新城市数据报错！{c}, e:{e}")
                 continue
 
-            if rh_dict == c.FUNC_CODE_ERROR:
+            if rh_dict == config.FUNC_CODE_ERROR:
                 continue
 
             if not rh_dict:
