@@ -258,7 +258,7 @@ class MysqlService(object):
         return MysqlUtil.modity(insert_sql)
 
     @staticmethod
-    def update_status_code(id_tuple, status_code=config.STATUS_CRAWLING, table=config.JOB_TABLE):
+    def update_status_code(id_tuple, status_code=config.STATUS_CRAWLING, table=config.REGION_TABLE):
         """更新表中的状态码"""
         update_sql = f"update {table} set status_code={status_code} where id in {id_tuple}"
         return MysqlUtil.modity(update_sql)

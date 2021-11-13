@@ -8,8 +8,8 @@ logging.basicConfig(level=logging.INFO,
 
 # 每次从数据库获取数据的个数
 QUERY_NUMBER_CITY = 1
-QUERY_NUMBER_REGION = 1
-QUERY_NUMBER_JOB = 50
+QUERY_NUMBER_REGION = 2500
+# QUERY_NUMBER_JOB = 50
 
 # mysql配置
 MYSQL = {
