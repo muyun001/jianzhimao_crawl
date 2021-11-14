@@ -225,7 +225,6 @@ class MysqlService(object):
                             ("{ju.hash_key(city + href)}","{city}","{href}")
                             """
             MysqlUtil.modity(insert_sql)
-            print(f"插入城市数据成功！{city}:{href}")
 
     @staticmethod
     def insert_region(city_id, rh_dict):
@@ -235,10 +234,10 @@ class MysqlService(object):
                             {config.REGION_TABLE} (`id`,`city_id`,`region`,`region_src`) 
                             values 
                             ('{ju.hash_key(city_id + region)}','{city_id}','{region}','{src}')"""
-            return MysqlUtil.modity(insert_sql)
+            MysqlUtil.modity(insert_sql)
 
     @staticmethod
-    def insert_job(region_id,job):
+    def insert_job(region_id, job):
         """将兼职数据写入数据库"""
         id = ju.hash_key(job["url"] + job["title"])
         # 拼接需要插入的values数据
@@ -246,7 +245,7 @@ class MysqlService(object):
                  (id, region_id, job["url"], job["title"], job["visited"], job["release_time"], job["job_type"],
                   job["recruit_num"], job["work_at"], job["time_require"], job["work_type"], job["at_least_weekly"],
                   job["work_time"], job["how_pay"], job["job_price"], job["job_detail"], job["com_name"],
-                  job["com_info"],job["com_addr"], config.STATUS_CRAWL_SUCCEED)
+                  job["com_info"], job["com_addr"], config.STATUS_CRAWL_SUCCEED)
         insert_sql = f"""
             insert ignore into
             {config.JOB_TABLE}

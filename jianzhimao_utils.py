@@ -86,7 +86,6 @@ class MysqlUtil(object):
         except Exception as e:
             logging.error(f"插入数据/修改数据报错，e:{e},sql:{sql}")
             connection.rollback()
-            return config.FUNC_CODE_ERROR
 
     @staticmethod
     def query(sql):
